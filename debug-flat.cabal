@@ -1,0 +1,32 @@
+cabal-version:       >=1.10
+
+name:                debug-flat
+version:             0.1.0.0
+-- synopsis:
+-- description:
+-- bug-reports:
+-- license:
+license-file:        LICENSE
+author:              kwxm
+maintainer:          kenneth.mackenzie@iohk.io
+-- copyright:
+-- category:
+build-type:          Simple
+extra-source-files:  CHANGELOG.md
+
+executable debug-flat
+  main-is:             Main.hs
+  other-modules:       Data
+  ghc-options:         -W
+  build-depends:       base >=4.14 && <4.15
+                     , bytestring -any
+                     , cborg -any 
+                     , deepseq -any
+                     , hex-text -any
+                     , mtl -any
+                     , prettyprinter -any
+                     , serialise -any
+                     , text -any
+
+  -- hs-source-dirs:
+  default-language:    Haskell2010
