@@ -3,6 +3,10 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 
+-- | A verbose decoder for flat encoding of de Bruijn-indexed Untyped Plutus
+-- Core programs.  This is intentionally simplistic to make it clear what's
+-- going on.
+
 module Main where
 
 import           Codec.Serialise      (deserialise)
@@ -18,7 +22,6 @@ import           Data.Word
 -- import           Debug.Trace          (trace)
 import           Numeric              (showHex)
 import           System.Environment   (getArgs)
-import           System.Exit
 import           Text.Printf          (printf)
 
 
@@ -189,7 +192,10 @@ decodeByteString i0 = do
             then pure ([],i)
             else do
               let (b, i') =  getBits 8 i
-              printf "%-8s : 0x%s  %s\n" (bitsToString 8 b) (toHex2 (fromIntegral b :: Word8)) (show $ chr (fromIntegral b :: Int))
+              printf "%-8s : 0x%s  %s\n"
+                         (bitsToString 8 b)
+                         (toHex2 (fromIntegral b :: Word8))
+                         (show $ chr (fromIntegral b :: Int))
               (a, i'') <- getNBytes (n-1) i'
               pure $ ((fromIntegral b):a, i'')
 
@@ -205,7 +211,7 @@ decodeData :: Input -> IO (ByteString, Input)
 decodeData = decodeByteString
 
 -- Divide input into 7-bit chunks, prefix chunk with 1 if more to come, 0 if no
--- more.  Start at the RIGHT: the first 7+1 bits in the output represent the
+-- more.  Start at the RIGHT: the first 1+7 bits in the output represent the
 -- last (rightmost) 7 bits in the input.
 decodeBitString :: Input -> IO (Integer, Input)
 decodeBitString i0 =
@@ -224,10 +230,12 @@ decodeNat i = do
   printf "%s Nat: %d\n" filler n
   pure (n,i')
 
+-- zigzag encoding: 0 -> 0, 1 -> -1, 2 -> 1, 3 -> -2, 4 -> 2, ...
+-- if n is even then n/2, else -(n-1)/2 - 1
 decodeInteger :: Input -> IO (Integer, Input)
 decodeInteger i = do
   (n,i') <- decodeBitString i
-  let m = if n .&. 1 == 1  -- zigzag encoding
+  let m = if n .&. 1 == 1
           then -(n `shift` (-1)) - 1  -- negative
           else  n `shift` (-1)        -- positive
   pure (m,i')
