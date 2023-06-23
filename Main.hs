@@ -69,7 +69,11 @@ builtins =
       "nullList", "chooseData", "constrData", "mapData", "listData",
       "iData", "bData", "unConstrData", "unMapData", "unListData",
       "unIData", "unBData", "equalsData", "mkPairData", "mkNilData",
-      "mkNilPairData", "serialiseData", "verifyEcdsaSecp256k1Signature", "verifySchnorrSecp256k1Signature"
+      "mkNilPairData", "serialiseData", "verifyEcdsaSecp256k1Signature", "verifySchnorrSecp256k1Signature",
+      "bls12_381_G1_add", "bls12_381_G1_mul", "bls12_381_G1_neg", "bls12_381_G1_equal", "bls12_381_G1_compress",
+      "bls12_381_G1_uncompress", "bls12_381_G1_hashToCurve", "bls12_381_G2_add", "bls12_381_G2_mul",
+      "bls12_381_G2_neg", "bls12_381_G2_equal", "bls12_381_G2_compress", "bls12_381_G2_uncompress",
+      "bls12_381_G2_hashToCurve", "bls12_381_GT_mul", "bls12_381_GT_finalVerify","bls12_381_GT_millerLoop"
     ]
 
 -- Convert an integer into a binary string of length n
@@ -381,7 +385,7 @@ decodeConstantVal i ty =
         (d,i1) <- decodeData i
         printf "%s con data # %s\n" filler (toHexString d)
         let d2 = deserialise d :: Data
-        putStrLn $ show  d2
+        putStrLn $ toString d2
         pure i1
 
 decodeConstant :: Input -> IO Input
@@ -455,4 +459,3 @@ main = do
       []     -> putStrLn "Filename expected"
       [file] -> (BSL.unpack <$> BSL.readFile file) >>= decodeProg
       _      -> putStrLn "Too many arguments: extected a filename"
-

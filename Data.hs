@@ -5,10 +5,9 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 
-module Data (Data (..)) where
+module Data (Data (..), toString) where
 
 import           Codec.CBOR.Decoding      (Decoder)
 import qualified Codec.CBOR.Decoding      as CBOR
@@ -24,10 +23,12 @@ import           Data.Bits                (shiftR)
 import qualified Data.ByteString          as BS
 import qualified Data.ByteString.Lazy     as BSL
 import qualified Data.Data
+import           Data.List                (intercalate)
+import qualified Data.Text.Encoding       as Text
 import           Data.Word                (Word64, Word8)
 import           GHC.Generics
 import           Prelude
-import           Prettyprinter
+import           Text.Printf
 
 -- Attempting to make this strict made code slower by 2%,
 -- see https://github.com/input-output-hk/plutus/pull/4622
@@ -46,13 +47,14 @@ data Data =
     deriving stock (Show, Eq, Ord, Generic, Data.Data.Data)
     deriving anyclass (NFData)
 
-instance Pretty Data where
-    pretty = \case
-        Constr _ ds -> angles (sep (punctuate comma (fmap pretty ds)))
-        Map entries -> braces (sep (punctuate comma (fmap (\(k, v) -> pretty k <> ":" <+> pretty v) entries)))
-        List ds     -> brackets (sep (punctuate comma (fmap pretty ds)))
-        I i         -> pretty i
-        B b         -> viaShow b
+toString :: Data -> String
+toString = \case
+           Constr n l  -> printf "Constr %d [%s]" n (intercalate ", " $ map toString l)
+           Map entries -> printf "Map {%s}" (intercalate ", " $ map (\(x,y) -> printf "(%s,%s)" (toString x) (toString y))  entries)
+           List ds     -> printf "List [%s]" (intercalate ", " $ map toString ds)
+           I i         -> printf "I %d" i
+           B b         -> printf "B %s" $ toHex (BS.unpack b)
+               where toHex a = "0x" ++ (concat $ fmap (printf "%02x") a :: String)
 
 {- Note [Encoding via Term]
 We want to write a custom encoder/decoder for Data (i.e. not use the Generic version), but actually

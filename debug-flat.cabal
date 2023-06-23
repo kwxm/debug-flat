@@ -6,7 +6,7 @@ version:             0.1.0.0
 -- description:
 -- bug-reports:
 -- license:
-license-file:        LICENSE
+-- license-file:        LICENSE
 author:              kwxm
 maintainer:          kenneth.mackenzie@iohk.io
 -- copyright:
@@ -18,7 +18,7 @@ executable debug-flat
   main-is:             Main.hs
   other-modules:       Data
   ghc-options:         -W
-  build-depends:       base >=4.14 && <4.15
+  build-depends:       base
                      , bytestring -any
                      , cborg -any 
                      , deepseq -any
