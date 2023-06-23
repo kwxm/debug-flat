@@ -288,42 +288,52 @@ printBlengths x = case x of
 
 
 data Type
-    = TypeInteger         -- 0
-    | TypeByteString      -- 1
-    | TypeString          -- 2
-    | TypeUnit            -- 3
-    | TypeBool            -- 4
-    | TypeList Type       -- 5
-    | TypePair Type Type  -- 6
-    | TypeData            -- 8
+    = TypeInteger              -- 0
+    | TypeByteString           -- 1
+    | TypeString               -- 2
+    | TypeUnit                 -- 3
+    | TypeBool                 -- 4
+    | TypeList Type            -- 5
+    | TypePair Type Type       -- 6
+    | TypeData                 -- 8
+    | TypeBLS12_381_G1_Element -- 9
+    | TypeBLS12_381_G2_Element -- 10
+    | TypeBLS12_381_MlResult   -- 11
+
 
 instance Show Type where
-    show TypeInteger        = "integer"
-    show TypeByteString     = "bytestring"
-    show TypeString         = "string"
-    show TypeUnit           = "unit"
-    show TypeBool           = "bool"
-    show (TypeList ty)      = printf "list(%s)" (show ty)
-    show (TypePair ty1 ty2) = printf "pair(%s,%s)" (show ty1) (show ty2)
-    show TypeData           = "data"
+    show TypeInteger              = "integer"
+    show TypeByteString           = "bytestring"
+    show TypeString               = "string"
+    show TypeUnit                 = "unit"
+    show TypeBool                 = "bool"
+    show (TypeList ty)            = printf "list(%s)" (show ty)
+    show (TypePair ty1 ty2)       = printf "pair(%s,%s)" (show ty1) (show ty2)
+    show TypeData                 = "data"
+    show TypeBLS12_381_G1_Element = "bls12_381_G1_element"
+    show TypeBLS12_381_G2_Element = "bls12_381_G2_element"
+    show TypeBLS12_381_MlResult   = "bls12_381_mlresult"
 
 parseTypeTags :: Input -> [Integer] -> Type
 parseTypeTags i l =
     let getTypes =
             \case
-                 [] -> error $ printf "Empty type tag list at %s" off
-                 0:tags -> (TypeInteger, tags)
-                 1:tags -> (TypeByteString, tags)
-                 2:tags -> (TypeString, tags)
-                 3:tags -> (TypeUnit, tags)
-                 4:tags -> (TypeBool, tags)
-                 7:5:tags -> let (ty, tags') = getTypes tags  -- List
+                 []         -> error $ printf "Empty type tag list at %s" off
+                 0:tags     -> (TypeInteger, tags)
+                 1:tags     -> (TypeByteString, tags)
+                 2:tags     -> (TypeString, tags)
+                 3:tags     -> (TypeUnit, tags)
+                 4:tags     -> (TypeBool, tags)
+                 7:5:tags   -> let (ty, tags') = getTypes tags  -- List
                            in (TypeList ty, tags')
                  7:7:6:tags -> let (ty1, tags1) = getTypes tags  --- Pair
                                    (ty2, tags2) = getTypes tags1
                            in (TypePair ty1 ty2, tags2)
-                 8:tags -> (TypeData, tags)
-                 t:_ -> error $ printf "Unexpected type tag %d at %s (tags = %s)" t off (show l)
+                 8:tags     -> (TypeData, tags)
+                 9:tags     -> (TypeBLS12_381_G1_Element, tags)
+                 10:tags    -> (TypeBLS12_381_G2_Element, tags)
+                 11:tags    -> (TypeBLS12_381_MlResult, tags)
+                 t:_        -> error $ printf "Unexpected type tag %d at %s (tags = %s)" t off (show l)
     in case getTypes l
        of (t,[]) -> t
           (t,extra) -> error $ printf "Found extra type tags after %s: %s (%s)" (show t) (show extra) off
@@ -387,6 +397,15 @@ decodeConstantVal i ty =
         let d2 = deserialise d :: Data
         putStrLn $ toString d2
         pure i1
+      TypeBLS12_381_G1_Element -> do
+              (b,i1) <- decodeByteString i
+              printf "%s con bls12_381_G1_element 0x%s\n" filler (toHexString b)
+              pure i1
+      TypeBLS12_381_G2_Element -> do
+              (b,i1) <- decodeByteString i
+              printf "%s con bls12_381_G2_element 0x%s\n" filler (toHexString b)
+              pure i1
+      TypeBLS12_381_MlResult -> error "Unexpected value of type bls12_381_mlresult"
 
 decodeConstant :: Input -> IO Input
 decodeConstant i = do
