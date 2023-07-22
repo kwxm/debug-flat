@@ -10,7 +10,8 @@
 module Main where
 
 import           Codec.Serialise      (deserialise)
-import           Data
+import           Data (Data (..))
+import qualified Data as D
 import           Data.Bits
 import           Data.ByteString.Lazy as BSL (ByteString, foldr, pack, readFile,
                                               toStrict, unpack)
@@ -73,7 +74,8 @@ builtins =
       "bls12_381_G1_add", "bls12_381_G1_mul", "bls12_381_G1_neg", "bls12_381_G1_equal", "bls12_381_G1_compress",
       "bls12_381_G1_uncompress", "bls12_381_G1_hashToCurve", "bls12_381_G2_add", "bls12_381_G2_mul",
       "bls12_381_G2_neg", "bls12_381_G2_equal", "bls12_381_G2_compress", "bls12_381_G2_uncompress",
-      "bls12_381_G2_hashToCurve", "bls12_381_GT_mul", "bls12_381_GT_finalVerify","bls12_381_GT_millerLoop"
+      "bls12_381_G2_hashToCurve", "bls12_381_GT_mul", "bls12_381_GT_finalVerify", "bls12_381_GT_millerLoop",
+      "keccak_256", "blake2b_224"
     ]
 
 -- Convert an integer into a binary string of length n
@@ -395,7 +397,7 @@ decodeConstantVal i ty =
         (d,i1) <- decodeData i
         printf "%s con data # %s\n" filler (toHexString d)
         let d2 = deserialise d :: Data
-        putStrLn $ toString d2
+        putStrLn $ D.toString d2
         pure i1
       TypeBLS12_381_G1_Element -> do
               (b,i1) <- decodeByteString i

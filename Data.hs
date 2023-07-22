@@ -24,7 +24,6 @@ import qualified Data.ByteString          as BS
 import qualified Data.ByteString.Lazy     as BSL
 import qualified Data.Data
 import           Data.List                (intercalate)
-import qualified Data.Text.Encoding       as Text
 import           Data.Word                (Word64, Word8)
 import           GHC.Generics
 import           Prelude
