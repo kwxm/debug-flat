@@ -477,12 +477,12 @@ decodeTerm i =
            (b, i2) <- decodeBuiltinName i1
            printf "%s builtin %s\n" filler b
            pure i2
-         8 -> do  -- constr  ann Word64 [Term]
+         8 -> do   -- constr
            printf "constr\n"
            i2 <- decodeWord64 i1
            i3 <- decodeTermList i2
            pure i3
-         9 -> do  -- case ann Term [Term]
+         9 -> do   -- case
            printf "case\n"
            i2 <- decodeTerm i1
            i3 <- decodeTermList i2
