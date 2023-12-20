@@ -258,6 +258,13 @@ decodeBool i = do
     pure (b,i1)
 
 
+decodeWord64 :: Input -> IO Input
+decodeWord64 i = do
+    let (v,i1) = getBits 8 i
+    printf "%-8s : Word64 %d\n" (bitsToString 8 v) v
+    pure i1
+
+
 getTagList :: Input -> Int -> IO ([Integer], Input)
 getTagList i0 width =
     get i0
@@ -327,10 +334,10 @@ parseTypeTags i l =
                  3:tags     -> (TypeUnit, tags)
                  4:tags     -> (TypeBool, tags)
                  7:5:tags   -> let (ty, tags') = getTypes tags  -- List
-                           in (TypeList ty, tags')
+                               in (TypeList ty, tags')
                  7:7:6:tags -> let (ty1, tags1) = getTypes tags  --- Pair
                                    (ty2, tags2) = getTypes tags1
-                           in (TypePair ty1 ty2, tags2)
+                               in (TypePair ty1 ty2, tags2)
                  8:tags     -> (TypeData, tags)
                  9:tags     -> (TypeBLS12_381_G1_Element, tags)
                  10:tags    -> (TypeBLS12_381_G2_Element, tags)
@@ -417,6 +424,19 @@ decodeConstant i = do
     printf "%s type: %s\n" filler (show ty)
     decodeConstantVal i1 ty
 
+decodeTermList :: Input -> IO Input
+decodeTermList i0 = get i0
+    where get i = do
+            let (b,i1) = getBits 1 i
+            if b == 0
+            then do
+              printf "%-8s : end of list\n" ("0"::String)
+              pure i1
+            else do
+              printf "%-8s : list entry\n" ("1"::String)
+              i2 <- decodeTerm i1
+              decodeTermList i2
+
 decodeTerm :: Input -> IO Input
 decodeTerm i =
     if endOfInput i
@@ -457,6 +477,16 @@ decodeTerm i =
            (b, i2) <- decodeBuiltinName i1
            printf "%s builtin %s\n" filler b
            pure i2
+         8 -> do  -- constr  ann Word64 [Term]
+           printf "constr\n"
+           i2 <- decodeWord64 i1
+           i3 <- decodeTermList i2
+           pure i3
+         9 -> do  -- case ann Term [Term]
+           printf "case\n"
+           i2 <- decodeTerm i1
+           i3 <- decodeTermList i2
+           pure i3
          n -> error $ printf "Invalid term tag %d at %s" n (stringOfOffset i1) -- Should be impossible
 
 decodeProg :: [Word8] -> IO ()
