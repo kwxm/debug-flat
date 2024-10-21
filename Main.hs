@@ -75,8 +75,9 @@ builtins =
       "bls12_381_G1_uncompress", "bls12_381_G1_hashToCurve", "bls12_381_G2_add", "bls12_381_G2_mul",
       "bls12_381_G2_neg", "bls12_381_G2_equal", "bls12_381_G2_compress", "bls12_381_G2_uncompress",
       "bls12_381_G2_hashToCurve", "bls12_381_GT_mul", "bls12_381_GT_finalVerify", "bls12_381_GT_millerLoop",
-      "keccak_256", "blake2b_224"
-    ]
+      "keccak_256", "blake2b_224", "integerToByteString", "byteStringToInteger", "andByteString", "orByteString",
+      "xorByteString", "complementByteString", "readBit", "writeBits", "replicateByte", "shiftByteString",
+      "rotateByteString", "countSetBits", "findFirstSetBit", "ripemd_160", "expModInteger", "caseList", "caseData" ]
 
 -- Convert an integer into a binary string of length n
 bitsToString :: Int -> Integer -> String
