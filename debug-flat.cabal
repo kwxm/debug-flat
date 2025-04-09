@@ -1,4 +1,4 @@
-cabal-version:       >=1.10
+cabal-version:       3.0
 
 name:                debug-flat
 version:             0.1.0.0
@@ -18,15 +18,14 @@ executable debug-flat
   main-is:             Main.hs
   other-modules:       Data
   ghc-options:         -W
-  build-depends:       base
-                     , bytestring -any
-                     , cborg -any 
-                     , deepseq -any
-                     , hex-text -any
-                     , mtl -any
-                     , prettyprinter -any
-                     , serialise -any
-                     , text -any
+  build-depends:       base >= 4.21,
+                       bytestring,
+                       cborg,
+                       deepseq,
+                       mtl <2.3 && >=0,
+                       serialise,
+                       text
 
+                     
   -- hs-source-dirs:
   default-language:    Haskell2010

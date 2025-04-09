@@ -77,7 +77,8 @@ builtins =
       "bls12_381_G2_hashToCurve", "bls12_381_GT_mul", "bls12_381_GT_finalVerify", "bls12_381_GT_millerLoop",
       "keccak_256", "blake2b_224", "integerToByteString", "byteStringToInteger", "andByteString", "orByteString",
       "xorByteString", "complementByteString", "readBit", "writeBits", "replicateByte", "shiftByteString",
-      "rotateByteString", "countSetBits", "findFirstSetBit", "ripemd_160", "expModInteger", "caseList", "caseData" ]
+      "rotateByteString", "countSetBits", "findFirstSetBit", "ripemd_160", "expModInteger", "caseList", "caseData",
+      "dropList", "lengthOfArray", "listToArray", "indexArray"]
 
 -- Convert an integer into a binary string of length n
 bitsToString :: Int -> Integer -> String
@@ -309,7 +310,7 @@ data Type
     | TypeBLS12_381_G1_Element -- 9
     | TypeBLS12_381_G2_Element -- 10
     | TypeBLS12_381_MlResult   -- 11
-
+    | TypeArray Type           -- 12
 
 instance Show Type where
     show TypeInteger              = "integer"
@@ -323,6 +324,7 @@ instance Show Type where
     show TypeBLS12_381_G1_Element = "bls12_381_G1_element"
     show TypeBLS12_381_G2_Element = "bls12_381_G2_element"
     show TypeBLS12_381_MlResult   = "bls12_381_mlresult"
+    show (TypeArray ty)            = printf "array(%s)" (show ty)
 
 parseTypeTags :: Input -> [Integer] -> Type
 parseTypeTags i l =
@@ -343,6 +345,8 @@ parseTypeTags i l =
                  9:tags     -> (TypeBLS12_381_G1_Element, tags)
                  10:tags    -> (TypeBLS12_381_G2_Element, tags)
                  11:tags    -> (TypeBLS12_381_MlResult, tags)
+                 7:12:tags  -> let (ty, tags') = getTypes tags
+                               in (TypeArray ty, tags')
                  t:_        -> error $ printf "Unexpected type tag %d at %s (tags = %s)" t off (show l)
     in case getTypes l
        of (t,[]) -> t
@@ -370,6 +374,27 @@ decodeConstantList i0 ty = get i0
               printf "%-8s : list entry\n" ("1"::String)
               i2 <- decodeConstantVal i1 ty
               decodeConstantList i2 ty
+
+decodeConstantArray :: Input -> Type -> IO Input
+decodeConstantArray i0 ty = get i0
+    where get i = do
+            (size,i1) <- decodeNat i
+            printf "%s array size = %d\n" filler size
+            decodeEntries i1 size
+            where decodeEntries j n =
+                    if n==0
+                    then do
+                      let (b,j1) = getBits 8 j
+                      if b == 0
+                        then do
+                          printf "%-8s : end of array\n" (bitsToString 8 b)
+                          pure j1
+                        else do
+                          printf "%-8s : unexpected end of array marker\n"  (bitsToString 8 b)
+                          pure j1
+                    else do
+                      j1 <- decodeConstantVal j ty
+                      decodeEntries j1 (n-1)
 
 decodeConstantVal :: Input -> Type -> IO Input
 decodeConstantVal i ty =
@@ -416,6 +441,9 @@ decodeConstantVal i ty =
               printf "%s con bls12_381_G2_element 0x%s\n" filler (toHexString b)
               pure i1
       TypeBLS12_381_MlResult -> error "Unexpected value of type bls12_381_mlresult"
+      TypeArray ty -> do
+        i1 <- decodeConstantArray i ty
+        pure i1
 
 decodeConstant :: Input -> IO Input
 decodeConstant i = do
