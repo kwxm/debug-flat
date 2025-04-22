@@ -18,13 +18,13 @@ executable debug-flat
   main-is:             Main.hs
   other-modules:       Data
   ghc-options:         -W
-  build-depends:       base >= 4.21,
-                       bytestring,
-                       cborg,
-                       deepseq,
-                       mtl <2.3 && >=0,
-                       serialise,
-                       text
+  build-depends:       base
+                     , bytestring
+                     , cborg
+                     , deepseq
+                     , mtl
+                     , serialise
+                     , text
 
                      
   -- hs-source-dirs:
