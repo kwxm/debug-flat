@@ -18,7 +18,7 @@ import           Codec.Serialise          (Serialise (decode, encode))
 import           Codec.Serialise.Decoding (decodeSequenceLenIndef,
                                            decodeSequenceLenN)
 import           Control.DeepSeq          (NFData)
-import           Control.Monad.Except
+import           Control.Monad            (unless)
 import           Data.Bits                (shiftR)
 import qualified Data.ByteString          as BS
 import qualified Data.ByteString.Lazy     as BSL

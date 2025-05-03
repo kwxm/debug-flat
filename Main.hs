@@ -376,26 +376,26 @@ decodeConstantList i0 ty = get i0
               decodeConstantList i2 ty
 
 decodeConstantArray :: Input -> Type -> IO Input
-decodeConstantArray i0 ty = get i0
-    where get i = do
-            (size,i1) <- decodeNat i
-            printf "%s array size = %d\n" filler size
-            decodeEntries i1 size
-            where decodeEntries j n =
-                    if n==0
-                    then do
-                      let (b,j1) = getBits 8 j
-                      if b == 0
-                        then do
-                          printf "%-8s : end of array\n" (bitsToString 8 b)
-                          pure j1
-                        else do
-                          printf "%-8s : unexpected end of array marker\n"  (bitsToString 8 b)
-                          pure j1
-                    else do
-                      j1 <- decodeConstantVal j ty
-                      decodeEntries j1 (n-1)
-
+decodeConstantArray i0 ty = getBlock i0
+    where getBlock :: Input -> IO Input
+          getBlock i = do
+            let (blockSize, i1) = getBits 8 i
+            if blockSize == 0
+              then do
+                printf "Empty block: end of array\n"
+                pure i1
+              else do
+                printf "%s array block: size = %d\n" filler blockSize
+                i2 <- decodeEntries i1 blockSize
+                getBlock i2
+          decodeEntries :: Input -> Integer -> IO Input
+          decodeEntries j n =
+            if n==0
+            then pure j
+            else do
+              j1 <- decodeConstantVal j ty
+              decodeEntries j1 (n-1)
+  
 decodeConstantVal :: Input -> Type -> IO Input
 decodeConstantVal i ty =
     case ty of
