@@ -150,7 +150,9 @@ decodeBuiltinName i  =
        then do
          printf "%-8s : builtin tag %d\n" (bitsToString builtinTagWidth tag) tag'
          pure (builtins !! tag', i1)
-       else error $ printf "At %s: failed to decode builtin tag (got %d)" (stringOfOffset i) tag'
+       else do
+         printf "%-8s : unknown builtin tag %d at %s\n" (bitsToString builtinTagWidth tag) tag' (stringOfOffset i)
+         pure (printf "[builtin %d]" tag', i1)
 
 
 -- Drop any remaining bits in the current byte.
